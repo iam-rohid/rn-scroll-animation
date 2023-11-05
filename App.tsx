@@ -1,18 +1,27 @@
 import "react-native-gesture-handler";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar, setStatusBarStyle } from "expo-status-bar";
 import {
-  FlatList,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { FlatList, GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   SafeAreaProvider,
-  SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import Animated, {
+  Extrapolate,
+  interpolate,
+  runOnJS,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
+import FeatherIcons from "@expo/vector-icons/Feather";
+import { useState } from "react";
 
 type Balance = {
   id: string;
@@ -65,7 +74,7 @@ const purchases: Purchase[] = [
     id: 2,
     title: "Amazon Prime Membership",
     type: "Amazon",
-    price: "$119.00",
+    price: "$119",
   },
   {
     id: 3,
@@ -77,7 +86,7 @@ const purchases: Purchase[] = [
     id: 4,
     title: "iPhone 12 Pro",
     type: "Mobile",
-    price: "$999.00",
+    price: "$999",
   },
   {
     id: 5,
@@ -125,19 +134,19 @@ const purchases: Purchase[] = [
     id: 12,
     title: "Groceries",
     type: "Food",
-    price: "$50.00",
+    price: "$50",
   },
   {
     id: 13,
     title: "Smart Home Security Camera",
     type: "Electronics",
-    price: "$149.00",
+    price: "$149",
   },
   {
     id: 14,
     title: "Gym Membership",
     type: "Fitness",
-    price: "$30.00",
+    price: "$30",
   },
   {
     id: 15,
@@ -155,19 +164,19 @@ const purchases: Purchase[] = [
     id: 17,
     title: "Home Decor Items",
     type: "Home",
-    price: "$25.00",
+    price: "$25",
   },
   {
     id: 18,
     title: "Car Insurance",
     type: "Insurance",
-    price: "$100.00",
+    price: "$100",
   },
   {
     id: 19,
     title: "Electricity Bill",
     type: "Utilities",
-    price: "$75.00",
+    price: "$75",
   },
   {
     id: 20,
@@ -188,100 +197,214 @@ export default function App() {
   );
 }
 
+const CARD_HEIGHT = 120;
+
 const Home = () => {
   const dimentions = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const expandMode = useSharedValue(false);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+      if (event.contentOffset.y >= 80 && !expandMode.value) {
+        expandMode.value = true;
+        runOnJS(setStatusBarStyle)("light");
+      }
+      if (event.contentOffset.y < 80 && expandMode.value) {
+        expandMode.value = false;
+        runOnJS(setStatusBarStyle)("auto");
+      }
+    },
+  });
+
+  const cardScrollListStyle = useAnimatedStyle(() => ({
+    top: Math.max(0, -(scrollY.value - 80)),
+  }));
+
+  const cardWrapperStyle = useAnimatedStyle(() => ({
+    paddingHorizontal: interpolate(
+      scrollY.value,
+      [0, 80],
+      [16, 0],
+      Extrapolate.CLAMP
+    ),
+  }));
+
+  const cardStyle = useAnimatedStyle(() => ({
+    borderTopLeftRadius: interpolate(
+      scrollY.value,
+      [0, 80],
+      [24, 0],
+      Extrapolate.CLAMP
+    ),
+    borderTopRightRadius: interpolate(
+      scrollY.value,
+      [0, 80],
+      [24, 0],
+      Extrapolate.CLAMP
+    ),
+
+    height: interpolate(
+      scrollY.value,
+      [0, 80],
+      [CARD_HEIGHT, CARD_HEIGHT + insets.top],
+      Extrapolate.CLAMP
+    ),
+  }));
 
   return (
-    <FlatList
-      style={{ flex: 1 }}
-      contentContainerStyle={{
-        paddingBottom: insets.bottom,
-      }}
-      data={purchases}
-      renderItem={({ item }) => (
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 14, fontWeight: "500" }}>
-              {item.title}
+    <>
+      <Animated.FlatList
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom,
+        }}
+        scrollEventThrottle={16}
+        onScroll={scrollHandler}
+        data={purchases}
+        renderItem={({ item }) => (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 14, fontWeight: "500" }}>
+                {item.title}
+              </Text>
+              <Text style={{ fontSize: 12, opacity: 0.5 }}>{item.type}</Text>
+            </View>
+            <Text
+              style={{ fontSize: 16, fontWeight: "600", textAlign: "right" }}
+            >
+              {item.price}
             </Text>
-            <Text style={{ fontSize: 12, opacity: 0.5 }}>{item.type}</Text>
           </View>
-          <Text style={{ fontSize: 16, fontWeight: "600", textAlign: "right" }}>
-            {item.price}
-          </Text>
-        </View>
-      )}
-      ListHeaderComponent={() => (
-        <View style={{ paddingTop: insets.top, backgroundColor: "#ffffff" }}>
-          <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
-            <Text style={{ fontSize: 36, fontWeight: "800" }}>Hello Rohid</Text>
-          </View>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={balances}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+        )}
+        ListHeaderComponent={() => (
+          <Animated.View
+            style={[
+              {
+                paddingTop: insets.top,
+                backgroundColor: "#ffffff",
+                position: "relative",
+              },
+            ]}
+          >
+            <View
+              style={{
+                paddingHorizontal: 16,
+                paddingBottom: 16,
+                height: 80,
+                justifyContent: "flex-end",
+              }}
+            >
+              <Text style={{ fontSize: 36, fontWeight: "800" }}>
+                Hello Rohid
+              </Text>
+            </View>
+            <View style={{ height: CARD_HEIGHT }} />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                padding: 16,
+              }}
+            >
+              <TouchableOpacity
+                style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+              >
+                <Text style={{ opacity: 0.7, fontSize: 12 }}>Filter By</Text>
+                <FeatherIcons
+                  name="chevron-down"
+                  size={16}
+                  style={{ opacity: 0.7 }}
+                />
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        )}
+      />
+      <Animated.FlatList
+        style={[
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+          },
+          cardScrollListStyle,
+        ]}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={balances}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <Animated.View
+            style={[
+              {
+                width: dimentions.width,
+                height: CARD_HEIGHT + insets.top,
+                justifyContent: "flex-end",
+              },
+              cardWrapperStyle,
+            ]}
+          >
+            <Animated.View
+              style={[
+                {
+                  backgroundColor: item.color,
+                  justifyContent: "flex-end",
+                  padding: 16,
+                  position: "relative",
+                  overflow: "hidden",
+                },
+                cardStyle,
+              ]}
+            >
               <View
                 style={{
-                  width: dimentions.width,
-                  padding: 16,
+                  position: "absolute",
+                  width: 300,
+                  height: 300,
+                  borderRadius: 300,
+                  backgroundColor: item.fgColor,
+                  opacity: 0.1,
+                  top: -60,
+                  left: -100,
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 14,
+                  marginBottom: 4,
+                  color: item.fgColor,
                 }}
               >
-                <View
-                  style={{
-                    backgroundColor: item.color,
-                    height: 128,
-                    justifyContent: "flex-end",
-                    padding: 16,
-                    borderRadius: 24,
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  <View
-                    style={{
-                      position: "absolute",
-                      width: 300,
-                      height: 300,
-                      borderRadius: 300,
-                      backgroundColor: item.fgColor,
-                      opacity: 0.1,
-                      top: -60,
-                      left: -100,
-                    }}
-                  />
-                  <Text style={{ fontSize: 16, color: item.fgColor }}>
-                    Current Balance
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 32,
-                      color: item.fgColor,
-                      fontWeight: "700",
-                    }}
-                  >
-                    ${item.balance.toLocaleString()}
-                  </Text>
-                </View>
-              </View>
-            )}
-            snapToInterval={dimentions.width}
-            decelerationRate="fast"
-            snapToAlignment="center"
-          />
-        </View>
-      )}
-      stickyHeaderIndices={[0]}
-    />
+                Current Balance
+              </Text>
+              <Text
+                style={{
+                  fontSize: 28,
+                  color: item.fgColor,
+                  fontWeight: "700",
+                }}
+              >
+                ${item.balance.toLocaleString()}
+              </Text>
+            </Animated.View>
+          </Animated.View>
+        )}
+        snapToInterval={dimentions.width}
+        decelerationRate="fast"
+        snapToAlignment="center"
+      />
+    </>
   );
 };
 
