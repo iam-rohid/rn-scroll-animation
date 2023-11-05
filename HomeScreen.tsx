@@ -1,11 +1,15 @@
 import { setStatusBarStyle } from "expo-status-bar";
 import {
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import Animated, {
   Extrapolate,
   interpolate,
@@ -15,9 +19,10 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import FeatherIcons from "@expo/vector-icons/Feather";
-import { allExpenses, allCards } from "./data";
+import { allExpenses, allCards, Expense } from "./data";
 
 const CARD_HEIGHT = 120;
+const TITLE_HEIGHT = 80;
 
 const HomeScreen = () => {
   const dimentions = useWindowDimensions();
@@ -74,157 +79,142 @@ const HomeScreen = () => {
   return (
     <>
       <Animated.FlatList
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingBottom: insets.bottom,
-        }}
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
         scrollEventThrottle={8}
         onScroll={scrollHandler}
         data={allExpenses}
-        renderItem={({ item }) => (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: "500" }}>
-                {item.title}
-              </Text>
-              <Text style={{ fontSize: 14, marginTop: 2, opacity: 0.5 }}>
-                {item.type}
-              </Text>
-            </View>
-            <Text
-              style={{ fontSize: 16, fontWeight: "600", textAlign: "right" }}
-            >
-              {item.price}
-            </Text>
-          </View>
-        )}
+        renderItem={({ item }) => <ExpanceItem expense={item} />}
         ListHeaderComponent={() => (
-          <Animated.View
-            style={[
-              {
-                paddingTop: insets.top,
-                backgroundColor: "#ffffff",
-                position: "relative",
-              },
-            ]}
-          >
-            <View
-              style={{
-                paddingHorizontal: 16,
-                paddingBottom: 16,
-                height: 80,
-                justifyContent: "flex-end",
-              }}
-            >
-              <Text style={{ fontSize: 36, fontWeight: "800" }}>
-                Hello Rohid
-              </Text>
+          <SafeAreaView edges={["top"]}>
+            <View style={styles.listHeaderTitleContainer}>
+              <Text style={styles.listHeaderTitle}>Hello Rohid</Text>
             </View>
             <View style={{ height: CARD_HEIGHT }} />
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                padding: 16,
-              }}
-            >
-              <TouchableOpacity
-                style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
-              >
-                <Text style={{ opacity: 0.7, fontSize: 14 }}>Filter By</Text>
+            <View style={styles.filterContainer}>
+              <TouchableOpacity style={styles.filterButton}>
+                <Text style={styles.filterButtonLabel}>Filter By</Text>
                 <FeatherIcons
                   name="chevron-down"
                   size={18}
-                  style={{ opacity: 0.7 }}
+                  style={styles.filterButtonIcon}
                 />
               </TouchableOpacity>
             </View>
-          </Animated.View>
+          </SafeAreaView>
         )}
       />
       <Animated.FlatList
-        style={[
-          {
-            position: "absolute",
-            left: 0,
-            right: 0,
-          },
-          cardScrollListStyle,
-        ]}
+        style={[styles.cardsList, cardScrollListStyle]}
         horizontal
         showsHorizontalScrollIndicator={false}
+        pagingEnabled
+        scrollEventThrottle={8}
         data={allCards}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Animated.View
             style={[
-              {
-                width: dimentions.width,
-                height: CARD_HEIGHT + insets.top,
-                justifyContent: "flex-end",
-              },
+              styles.cardWrapper,
+              { width: dimentions.width, height: CARD_HEIGHT + insets.top },
               cardWrapperStyle,
             ]}
           >
             <Animated.View
-              style={[
-                {
-                  backgroundColor: item.color,
-                  justifyContent: "flex-end",
-                  padding: 16,
-                  position: "relative",
-                  overflow: "hidden",
-                  borderRadius: 24,
-                },
-                cardStyle,
-              ]}
+              style={[styles.card, { backgroundColor: item.color }, cardStyle]}
             >
               <View
-                style={{
-                  position: "absolute",
-                  width: 300,
-                  height: 300,
-                  borderRadius: 300,
-                  backgroundColor: item.fgColor,
-                  opacity: 0.1,
-                  top: -60,
-                  left: -100,
-                }}
+                style={[styles.cardCircle, { backgroundColor: item.fgColor }]}
               />
-              <Text
-                style={{
-                  fontSize: 16,
-                  marginBottom: 4,
-                  color: item.fgColor,
-                }}
-              >
+              <Text style={[styles.cardTitle, { color: item.fgColor }]}>
                 Current Balance
               </Text>
-              <Text
-                style={{
-                  fontSize: 32,
-                  color: item.fgColor,
-                  fontWeight: "700",
-                }}
-              >
+              <Text style={[styles.cardPriceText, { color: item.fgColor }]}>
                 ${item.balance.toLocaleString()}
               </Text>
             </Animated.View>
           </Animated.View>
         )}
-        pagingEnabled
-        scrollEventThrottle={8}
       />
     </>
   );
 };
 
 export default HomeScreen;
+
+function ExpanceItem({ expense }: { expense: Expense }) {
+  return (
+    <View style={styles.listItem}>
+      <View style={styles.listItemContent}>
+        <Text style={styles.listItemTitle}>{expense.title}</Text>
+        <Text style={styles.listItemSubtitle}>{expense.type}</Text>
+      </View>
+      <Text style={styles.listItemValue}>{expense.price}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  listHeaderTitleContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    height: TITLE_HEIGHT,
+    justifyContent: "flex-end",
+  },
+  filterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    padding: 16,
+  },
+  filterButton: { flexDirection: "row", alignItems: "center", gap: 2 },
+  filterButtonLabel: { opacity: 0.7, fontSize: 14 },
+  filterButtonIcon: { opacity: 0.7 },
+  listHeaderTitle: { fontSize: 36, fontWeight: "800" },
+  listItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  listItemContent: {
+    flex: 1,
+  },
+  listItemTitle: { fontSize: 16, fontWeight: "500" },
+  listItemSubtitle: { fontSize: 14, marginTop: 2, opacity: 0.5 },
+  listItemValue: { fontSize: 16, fontWeight: "600", textAlign: "right" },
+  cardsList: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+  },
+  cardWrapper: {
+    justifyContent: "flex-end",
+  },
+  card: {
+    justifyContent: "flex-end",
+    padding: 16,
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: 24,
+  },
+  cardTitle: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  cardCircle: {
+    position: "absolute",
+    width: 300,
+    height: 300,
+    borderRadius: 300,
+    backgroundColor: "#ffffff",
+    opacity: 0.1,
+    top: -60,
+    left: -100,
+  },
+  cardPriceText: {
+    fontSize: 32,
+    fontWeight: "700",
+  },
+});
