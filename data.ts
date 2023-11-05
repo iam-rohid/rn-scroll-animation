@@ -1,5 +1,5 @@
 export type Card = {
-  id: string;
+  id: number;
   balance: number;
   color: string;
   fgColor: string;
@@ -7,25 +7,25 @@ export type Card = {
 
 export const allCards: Card[] = [
   {
-    id: "1",
+    id: 1,
     balance: 21424,
     color: "#4f46e5",
     fgColor: "#ffffff",
   },
   {
-    id: "2",
+    id: 2,
     balance: 46700,
     color: "#2563eb",
     fgColor: "#ffffff",
   },
   {
-    id: "3",
+    id: 3,
     balance: 30000,
     color: "#db2777",
     fgColor: "#ffffff",
   },
   {
-    id: "4",
+    id: 4,
     balance: 430802,
     color: "#e11d48",
     fgColor: "#ffffff",

@@ -84,7 +84,8 @@ const HomeScreen = () => {
         scrollEventThrottle={8}
         onScroll={scrollHandler}
         data={allExpenses}
-        renderItem={({ item }) => <ExpanceItem expense={item} />}
+        keyExtractor={(item) => `expense-${item.id}`}
+        renderItem={({ item }) => <ExpanseItem expense={item} />}
         ListHeaderComponent={() => (
           <SafeAreaView edges={["top"]}>
             <View style={styles.listHeaderTitleContainer}>
@@ -111,7 +112,7 @@ const HomeScreen = () => {
         pagingEnabled
         scrollEventThrottle={8}
         data={allCards}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => `card-${item.id}`}
         renderItem={({ item }) => (
           <Animated.View
             style={[
@@ -142,7 +143,7 @@ const HomeScreen = () => {
 
 export default HomeScreen;
 
-function ExpanceItem({ expense }: { expense: Expense }) {
+function ExpanseItem({ expense }: { expense: Expense }) {
   return (
     <View style={styles.listItem}>
       <View style={styles.listItemContent}>
