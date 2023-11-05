@@ -261,7 +261,7 @@ const Home = () => {
         contentContainerStyle={{
           paddingBottom: insets.bottom,
         }}
-        scrollEventThrottle={16}
+        scrollEventThrottle={8}
         onScroll={scrollHandler}
         data={purchases}
         renderItem={({ item }) => (
