@@ -270,14 +270,16 @@ const Home = () => {
               flexDirection: "row",
               alignItems: "center",
               paddingHorizontal: 16,
-              paddingVertical: 8,
+              paddingVertical: 12,
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontWeight: "500" }}>
+              <Text style={{ fontSize: 16, fontWeight: "500" }}>
                 {item.title}
               </Text>
-              <Text style={{ fontSize: 12, opacity: 0.5 }}>{item.type}</Text>
+              <Text style={{ fontSize: 14, marginTop: 2, opacity: 0.5 }}>
+                {item.type}
+              </Text>
             </View>
             <Text
               style={{ fontSize: 16, fontWeight: "600", textAlign: "right" }}
@@ -320,10 +322,10 @@ const Home = () => {
               <TouchableOpacity
                 style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
               >
-                <Text style={{ opacity: 0.7, fontSize: 12 }}>Filter By</Text>
+                <Text style={{ opacity: 0.7, fontSize: 14 }}>Filter By</Text>
                 <FeatherIcons
                   name="chevron-down"
-                  size={16}
+                  size={18}
                   style={{ opacity: 0.7 }}
                 />
               </TouchableOpacity>
@@ -363,6 +365,7 @@ const Home = () => {
                   padding: 16,
                   position: "relative",
                   overflow: "hidden",
+                  borderRadius: 24,
                 },
                 cardStyle,
               ]}
@@ -381,7 +384,7 @@ const Home = () => {
               />
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: 16,
                   marginBottom: 4,
                   color: item.fgColor,
                 }}
@@ -390,7 +393,7 @@ const Home = () => {
               </Text>
               <Text
                 style={{
-                  fontSize: 28,
+                  fontSize: 32,
                   color: item.fgColor,
                   fontWeight: "700",
                 }}
